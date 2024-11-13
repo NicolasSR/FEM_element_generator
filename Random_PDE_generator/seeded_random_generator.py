@@ -1,6 +1,6 @@
 import numpy as np
 
-class RandomGenerator:
+class SeededRandomGenerator:
     # Class-level attribute to store the seed
     _seed = None
     _rand_generator = None
