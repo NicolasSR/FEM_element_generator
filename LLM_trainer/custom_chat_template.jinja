@@ -1,0 +1,14 @@
+{{- bos_token }}
+
+{#- System message #}
+{{- "<|start_header_id|>system<|end_header_id|>" }}
+{{- "Generate the pseudocode for this mathematical expression written in LaTeX:"  }}
+{{- "<|eot_id|>\n" }}
+
+{#- User and assistant messages #}
+{%- for message in messages %}
+    {{- '<|start_header_id|>' + message['role'] + '<|end_header_id|>'+ message['content'] | trim + '<|eot_id|>\n' }}
+{%- endfor %}
+{%- if add_generation_prompt %}
+    {{- '<|start_header_id|>assistant<|end_header_id|>' }}
+{%- endif %}

@@ -8,7 +8,7 @@ from datasets import Dataset
 
 from seeded_random_generator import SeededRandomGenerator as Utilities
 # from Random_PDE_generator.latex_parser_old import LatexParser, conversions_list, parenthesis_table, categories_map
-from operators_dict_handler import OperatorDictHandler, operators_dict, parenthesis_table, precedence_map
+from operators_dict_handler_nofun import OperatorDictHandler, operators_dict, parenthesis_table, precedence_map
 from variables_dict_handler import VariableDictHandler, variables_dict
 from coords_dict_handler import CoordsDictHandler, coords_dict
 
@@ -22,8 +22,7 @@ class OperatorsTree():
         self.variables_dict_handler = variables_dict_handler
         self.coords_dict_handler = coords_dict_handler
         first_node_class = self.operators_dict_handler.get_class_from_operator(first_operator)
-        self.nodes_list = [first_node_class(0, self, first_operator)]
-        self.node(0).set_first_node_ranks(manual_rank)
+        self.nodes_list = first_node_class.create_new_node_as_root(0, self, first_operator, manual_rank)
         self.root_node = self.node(0)
         self.leaf_nodes_list = None
         self.upwards_traversal_order = None
@@ -58,7 +57,6 @@ class OperatorsTree():
             var_nodes.extend(new_nodes)
             node_id+=len(new_nodes)
         self.nodes_list.extend(var_nodes)
-
 
     def get_upwards_traversal_order(self):
         self.leaf_nodes_list = []
@@ -143,10 +141,13 @@ class PDEWeakFormGenerator():
         self.variables_dict_handler.reset()
         self.coords_dict_handler.reset()
 
-        root_operator_candidates = ['prod(a,b)', 'dot(a,b)', 'inner(a,b)']
+        root_operator_candidates = self.operators_dict_handler.list_all_operators()
+        # root_operator_candidates = ['prod(a,b)', 'dot(a,b)', 'inner(a,b)']
         root_operator = Utilities.get_random_element(root_operator_candidates)[0]
 
-        manual_rank = 0
+        # manual_rank = 0
+        rank_candidates = self.operators_dict_handler.get_compatible_out_ranks(root_operator)
+        manual_rank = Utilities.get_random_element(rank_candidates)[0]
 
         tree = OperatorsTree(operators_dict_handler, variables_dict_handler, coords_dict_handler, root_operator, manual_rank)
 
@@ -168,10 +169,10 @@ if __name__=="__main__":
     import matplotlib.pyplot as plt
 
     # seed = np.random.randint(100000)
-    # seed = 1234
+    seed = 1234
     # seed = 0 # For training set
-    # seed = 1 # For test set
-    seed = 2 # For test set without fun(...)
+    # seed = 1 # For validation set
+    # seed = 2 # For test set
     Utilities.set_seed(seed)
 
     operators_dict_handler = OperatorDictHandler(operators_dict, parenthesis_table, precedence_map)
@@ -180,35 +181,31 @@ if __name__=="__main__":
 
     pde_generator = PDEWeakFormGenerator(operators_dict_handler, variables_dict_handler, coords_dict_handler)
 
-    
+    """ 
     ds=None
 
-    # for i in range(10000):
-    #     if i%1000==0:
-    #         print(i)
-    is_finished = False
-    while not is_finished:
+    for i in range(1000):
+        if i%1000==0:
+            print(i)
 
-        tree = pde_generator.generate_expression([2,6])
+        tree = pde_generator.generate_expression([0,6])
         latex_string = tree.tree_latex_string
         pseudocode_string = tree.tree_pseudocode_string
 
         formatted_latex_string = re.sub(r':/:', r'\\\\', latex_string)
 
-        if not 'fun(' in pseudocode_string:
-            if ds is None:
-                ds = Dataset.from_dict({"conversations": [[{'role': 'user', 'content': formatted_latex_string},{'role': 'assistant', 'content': pseudocode_string}]], "seed": [seed]})
-            else:
-                ds = ds.add_item({"conversations": [{'role': 'user', 'content': formatted_latex_string},{'role': 'assistant', 'content': pseudocode_string}], "seed": seed})
+        if ds is None:
+            ds = Dataset.from_dict({"conversations": [[{'role': 'user', 'content': formatted_latex_string},{'role': 'assistant', 'content': pseudocode_string}]], "seed": [seed]})
+        else:
+            ds = ds.add_item({"conversations": [{'role': 'user', 'content': formatted_latex_string},{'role': 'assistant', 'content': pseudocode_string}], "seed": seed})
 
-            is_finished = ds.num_rows==1000
     ds.save_to_disk("test_dataset.hf")
-   
+    """
 
-    """ 
-    for i in range(8):
+    
+    for i in range(10):
 
-        tree = pde_generator.generate_expression([2,6])
+        tree = pde_generator.generate_expression([0,6])
         latex_string = tree.tree_latex_string
         pseudocode_string = tree.tree_pseudocode_string
 
@@ -217,7 +214,7 @@ if __name__=="__main__":
         # print('$'+re.sub(r':/:', r'\\', latex_string)+'$\\\\')
         # print(re.sub(r'_', r'\\_', pseudocode_string)+'\\\\')
         # print()
-    """
+   
 
     # full_latex_string = re.sub(':/:', r'\\', operators_tree.tree_latex_string)
     # print(full_latex_string)

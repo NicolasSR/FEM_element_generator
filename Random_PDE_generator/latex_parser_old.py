@@ -1,6 +1,6 @@
 import numpy as np
 
-from Random_PDE_generator.seeded_random_generator import SeededRandomGenerator as Utilities
+from seeded_random_generator import SeededRandomGenerator as Utilities
 
 conversions_list=[
 # Scaler specific
@@ -47,7 +47,12 @@ conversions_list=[
 ['a,b', ['a,b', 'parenthesis']]
 ]
 
+parenthesis_table = None
+#### WE HAVE AN ERROR: If a poly_tens enters a product on the right and the product's left child is not a scalar, we need to have paarenthesis on the right operator child.
+# Example: \boldsymbol{\psi} \boldsymbol{\psi} \cdot \boldsymbol{\psi} \cdot \text{fun}(\frac{\boldsymbol{\psi}}{\varphi},\boldsymbol{\Xi},\varphi)$\\
+#           dot(prod(psi\_bold,dot(psi\_bold,psi\_bold)),fun(frac(psi\_bold,varphi),Xi\_bold,varphi))
 
+"""
 ## Parenthesis_table:
 parenthesis_table = np.array([
      # poly_sum_L | poly_sum_R | poly_tens_L | poly_tens_R | poly_prod | exp_L | exp_R | mono | frac | parenthesis
@@ -59,6 +64,7 @@ parenthesis_table = np.array([
     [   0,              0,          0,              0,          0,          1,      0,      0,  0,      0],      #frac
     [   0,              0,          0,              0,          0,          0,      0,      0,  0,      0]       #parenthesis
 ])
+"""
 
 categories_map = [{'poly_sum':0,'poly_tens':1,'poly_prod':2,'exp':3, 'exp_L':3, 'exp_R':3, 'mono':4,'frac':5,'parenthesis':6},
     {'poly_sum_L':0,'poly_sum_R':1,'poly_tens_L':2,'poly_tens_R':3,'poly_prod_L':4,'poly_prod_R':4,'exp_L':5,'exp_R':6,'mono_L':7,'frac_L':8,'frac_R':8,'parenthesis_L':9,'parenthesis_R':9}]
